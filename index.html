@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAMP Simulator</title>
+<meta name="description" content="Análise e desenho de primers LAMP e simulação da reação colorimétrica, rodando só no seu computador.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#fbf7f2; --surface:#ffffff; --ink:#1d1a17; --muted:#6b635b; --line:#e7ded3;
+  --pink:#d6336c; --pink-soft:#fbe3ec; --yellow:#e8a317; --yellow-soft:#fdf1d6;
+  --teal:#1f7a70; --teal-soft:#dff0ed; --code:#f3ede5;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15130f; --surface:#1e1b17; --ink:#f1ece6; --muted:#a79e94; --line:#2f2a24;
+    --pink:#f06595; --pink-soft:#3a1d28; --yellow:#f5b83a; --yellow-soft:#3a2e14;
+    --teal:#4fc1b2; --teal-soft:#16302c; --code:#26221d;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15130f; --surface:#1e1b17; --ink:#f1ece6; --muted:#a79e94; --line:#2f2a24;
+  --pink:#f06595; --pink-soft:#3a1d28; --yellow:#f5b83a; --yellow-soft:#3a2e14;
+  --teal:#4fc1b2; --teal-soft:#16302c; --code:#26221d;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans",system-ui,sans-serif}
+a{color:var(--teal)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+header.top{display:flex;justify-content:space-between;align-items:center;padding:20px 0;gap:12px}
+.marca{font-family:Fraunces,serif;font-weight:700;font-size:20px;letter-spacing:-.01em}
+.marca span{color:var(--pink)}
+.top nav a{margin-left:18px;color:var(--muted);text-decoration:none;font-size:15px}
+.top nav a:hover{color:var(--ink)}
+.hero{padding:48px 0 32px;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.selo{display:inline-block;font:500 13px "IBM Plex Mono",monospace;color:var(--teal);background:var(--teal-soft);padding:4px 10px;border-radius:99px}
+h1{font-family:Fraunces,serif;font-weight:700;font-size:clamp(34px,5.4vw,56px);line-height:1.05;letter-spacing:-.02em;margin:16px 0}
+h1 em{font-style:normal;background:linear-gradient(90deg,var(--pink),var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:18px;color:var(--muted);max-width:34em}
+.acoes{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+.botao{display:inline-block;padding:11px 18px;border-radius:10px;font-weight:600;text-decoration:none;border:1px solid var(--line)}
+.botao.primario{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.botao.sec{color:var(--ink);background:var(--surface)}
+.tubos{display:flex;gap:14px;justify-content:center;align-items:flex-end;padding:28px;background:var(--surface);border:1px solid var(--line);border-radius:20px}
+.tubo{width:38px;height:150px;border-radius:6px 6px 19px 19px;border:2px solid var(--line);position:relative;overflow:hidden;background:var(--bg)}
+.tubo::after{content:"";position:absolute;left:0;right:0;bottom:0;height:70%;background:var(--pink);animation:virar 6s ease-in-out infinite;animation-delay:var(--d)}
+@keyframes virar{0%,15%{background:var(--pink)}45%,85%{background:var(--yellow)}100%{background:var(--pink)}}
+.tubo.neg::after{animation:none;background:var(--pink)}
+.tubos-leg{text-align:center;font-size:13px;color:var(--muted);margin-top:10px}
+@media (prefers-reduced-motion: reduce){.tubo::after{animation:none}.tubo:not(.neg)::after{background:var(--yellow)}}
+section{padding:40px 0;border-top:1px solid var(--line)}
+h2{font-family:Fraunces,serif;font-weight:700;font-size:30px;letter-spacing:-.01em;margin:0 0 8px}
+.sub{color:var(--muted);margin:0 0 28px;max-width:44em}
+.grade{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cartao{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px}
+.cartao h3{margin:6px 0 6px;font-size:18px}
+.cartao p{margin:0;color:var(--muted);font-size:15px}
+.num{font:500 13px "IBM Plex Mono",monospace;color:var(--pink)}
+.mapa{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;overflow-x:auto}
+.mapa svg{display:block;min-width:640px;width:100%;height:auto}
+.mapa text{font-family:"IBM Plex Mono",monospace;font-size:12px;fill:var(--ink)}
+.mapa .eixo{stroke:var(--muted);stroke-width:2}
+.mapa .rot{fill:var(--muted);font-size:11px}
+.privado{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start;background:var(--teal-soft);border-radius:16px;padding:22px}
+.privado svg{width:40px;height:40px;stroke:var(--teal)}
+.privado p{margin:0}
+pre{background:var(--code);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto;font:14px/1.55 "IBM Plex Mono",monospace;margin:0 0 14px}
+.passos{counter-reset:p;list-style:none;padding:0;margin:0}
+.passos li{counter-increment:p;position:relative;padding-left:44px;margin-bottom:18px}
+.passos li::before{content:counter(p);position:absolute;left:0;top:0;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:600;font-size:14px}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:15px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
+tr:last-child td{border-bottom:0}
+.tag{display:inline-block;font:500 12px "IBM Plex Mono",monospace;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.tag.b{background:var(--yellow-soft);color:var(--ink)}
+.tag.c{background:var(--pink-soft);color:var(--ink)}
+.tabela-rolagem{overflow-x:auto}
+footer{padding:32px 0 48px;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+@media (max-width:820px){
+  .hero{grid-template-columns:1fr;padding-top:24px}
+  .grade{grid-template-columns:1fr}
+  .top nav{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="marca">LAMP<span>·</span>Simulator</div>
+    <nav>
+      <a href="#o-que-faz">O que faz</a>
+      <a href="#instalar">Instalar</a>
+      <a href="#pendencias">Em aberto</a>
+      <a href="https://github.com/DiegoRag/lamp-tested-">GitHub</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <span class="selo">Projeto LAMP · SENAC · FMABC</span>
+      <h1>Primers LAMP conferidos e simulados <em>do rosa ao amarelo</em>.</h1>
+      <p class="lead">Analise um conjunto de primers contra a sequência-alvo, desenhe conjuntos novos e veja como os tubos do ensaio colorimétrico devem virar de cor. Tudo roda no seu computador.</p>
+      <div class="acoes">
+        <a class="botao primario" href="#instalar">Como instalar</a>
+        <a class="botao sec" href="https://github.com/DiegoRag/lamp-tested-">Ver o código</a>
+      </div>
+    </div>
+    <div>
+      <div class="tubos" role="img" aria-label="Oito tubos que viram de rosa para amarelo em tempos diferentes e um controle negativo que continua rosa">
+        <div class="tubo" style="--d:0s"></div>
+        <div class="tubo" style="--d:.3s"></div>
+        <div class="tubo" style="--d:.6s"></div>
+        <div class="tubo" style="--d:.9s"></div>
+        <div class="tubo" style="--d:1.3s"></div>
+        <div class="tubo neg"></div>
+      </div>
+      <p class="tubos-leg">Diluições do alvo viram em tempos diferentes; o controle negativo (à direita) continua rosa.</p>
+    </div>
+  </div>
+
+  <section id="o-que-faz">
+    <h2>O que faz</h2>
+    <p class="sub">Três etapas no site local, mais uma página que liga os primers à simulação da reação.</p>
+    <div class="grade">
+      <div class="cartao"><div class="num">01 · Análise</div><h3>Confere um conjunto</h3><p>Localiza F3, F2, F1, B1c, B2c, B3c e os laços nas duas fitas, com até 3 erros de base. Mede distâncias, Tm, GC, ponta 3′, grampos e dímeros, e aponta cada regra quebrada.</p></div>
+      <div class="cartao"><div class="num">02 · Desenho</div><h3>Propõe conjuntos novos</h3><p>Percorre o alvo inteiro e devolve as 5 melhores propostas, cada uma com um núcleo diferente, ordenadas pela Tm e pelo pior dímero com a ponta 3′ pareada.</p></div>
+      <div class="cartao"><div class="num">03 · Tubos</div><h3>Simula a reação</h3><p>Converte os erros de base em eficiência prevista e simula 9 tubos (de 10⁶ a 1 cópia e os controles), com a cor do vermelho de fenol e o pH minuto a minuto.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Como o site lê um conjunto</h2>
+    <p class="sub">As seis regiões e os laços de um conjunto LAMP, na ordem em que caem no alvo. As distâncias entre elas são as réguas da Análise.</p>
+    <div class="mapa">
+      <svg viewBox="0 0 900 150" role="img" aria-label="Mapa das regiões LAMP: F3, F2, LF, F1, B1c, LB, B2c e B3c ao longo do alvo, com a distância F2–B2 de 120 a 180 nucleotídeos">
+        <line class="eixo" x1="20" y1="70" x2="880" y2="70"/>
+        <g>
+          <rect x="40" y="56" width="70" height="28" rx="6" fill="var(--teal)"/><text x="75" y="48" text-anchor="middle">F3</text>
+          <rect x="140" y="56" width="70" height="28" rx="6" fill="var(--pink)"/><text x="175" y="48" text-anchor="middle">F2</text>
+          <rect x="235" y="60" width="60" height="20" rx="6" fill="var(--yellow)"/><text x="265" y="48" text-anchor="middle">LF</text>
+          <rect x="320" y="56" width="70" height="28" rx="6" fill="var(--pink)" opacity=".65"/><text x="355" y="48" text-anchor="middle">F1</text>
+          <rect x="510" y="56" width="70" height="28" rx="6" fill="var(--pink)" opacity=".65"/><text x="545" y="48" text-anchor="middle">B1c</text>
+          <rect x="605" y="60" width="60" height="20" rx="6" fill="var(--yellow)"/><text x="635" y="48" text-anchor="middle">LB</text>
+          <rect x="690" y="56" width="70" height="28" rx="6" fill="var(--pink)"/><text x="725" y="48" text-anchor="middle">B2c</text>
+          <rect x="790" y="56" width="70" height="28" rx="6" fill="var(--teal)"/><text x="825" y="48" text-anchor="middle">B3c</text>
+        </g>
+        <path d="M140 104 V112 H760 V104" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+        <text class="rot" x="450" y="130" text-anchor="middle">F2–B2: 120 a 180 nt (120 a 160 preferido)</text>
+        <path d="M140 94 V100 H320 V94" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+        <text class="rot" x="230" y="146" text-anchor="middle">F2–F1: 40 a 60 nt</text>
+      </svg>
+    </div>
+  </section>
+
+  <section>
+    <div class="privado">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      <p><strong>Nenhuma sequência sai da sua máquina.</strong> O site é um servidor local que escuta só em 127.0.0.1 (ADR-0013, regra 3). Esta página apresenta o projeto; para analisar primers, instale e rode no seu computador. Sequências de isolados clínicos nunca entram no repositório.</p>
+    </div>
+  </section>
+
+  <section id="instalar">
+    <h2>Instalar e rodar</h2>
+    <p class="sub">Requer Python 3.12 ou mais novo. Todas as dependências têm versão fixa.</p>
+    <ol class="passos">
+      <li>Baixe o código e instale as dependências:
+<pre>git clone https://github.com/DiegoRag/lamp-tested-.git
+cd lamp-tested-
+pip install -r requirements.txt</pre></li>
+      <li>Confira que está tudo verde (354 testes):
+<pre>ruff check .
+pytest -q</pre></li>
+      <li>Suba o site e abra <code>http://127.0.0.1:8000</code> no navegador:
+<pre># PowerShell
+$env:PYTHONPATH = "src"; python -m interface
+
+# Linux / macOS / Git Bash
+PYTHONPATH=src python -m interface</pre></li>
+      <li>Ou use a linha de comando (a saída fica em <code>saida/</code>):
+<pre>PYTHONPATH=src python -m primers analisar --entrada tests/dados/conjunto_ok.csv \
+  --alvo tests/dados/alvo_ok.fasta --saida saida/analise
+PYTHONPATH=src python -m primers desenhar --alvo tests/dados/alvo_ok.fasta --saida saida/desenho</pre></li>
+    </ol>
+  </section>
+
+  <section id="pendencias">
+    <h2>O que ainda está em aberto</h2>
+    <p class="sub">A revisão de 17/10/2026 levantou 88 problemas, corrigidos em 6 fases. Todo resultado é provisório até a validação em bancada. Lista completa em <a href="https://github.com/DiegoRag/lamp-tested-/blob/feat/esteira/PENDENCIAS.md">PENDENCIAS.md</a>.</p>
+    <div class="tabela-rolagem">
+    <table>
+      <thead><tr><th>Questão</th><th>Situação</th><th>Tipo</th></tr></thead>
+      <tbody>
+        <tr><td>Faixas de Tm</td><td>Convenção do PrimerExplorer V5 adotada; Tm fora da faixa aparece como "a calibrar"</td><td><span class="tag b">bancada</span></td></tr>
+        <tr><td>Cinética e eficiência</td><td>Parâmetros provisórios do simulador</td><td><span class="tag b">bancada</span></td></tr>
+        <tr><td>Concentrações dos primers</td><td>200 / 1.600 / 400 nM, a conferir no artigo-base</td><td><span class="tag b">bancada</span></td></tr>
+        <tr><td>Limite de heterodímero</td><td>Só ordena propostas, não reprova</td><td><span class="tag b">bancada</span></td></tr>
+        <tr><td>Busca repetida na análise</td><td>6,6 s num genoma de 5 Mb; dá para cair a ~3 s</td><td><span class="tag c">código</span></td></tr>
+        <tr><td>Linha de comando da esteira</td><td>Ainda não existe</td><td><span class="tag c">código</span></td></tr>
+        <tr><td>Desenho</td><td>Faltam: ajustes para alvos ricos em AT/GC, FIP/BIP inteiros, unicidade com erros, alvo circular</td><td><span class="tag c">código</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <footer>
+    LAMP Simulator · Projeto LAMP (Centro Universitário SENAC · FMABC) · primers por Diego Ragozini, simulador por Henrique Prado. Candidatos calculados por computador, ainda não testados em bancada.
+  </footer>
+</div>
+</body>
+</html>
